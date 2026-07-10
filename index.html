@@ -1,0 +1,159 @@
+<!--
+  Copyright 2024 Google LLC
+  SPDX-License-Identifier: Apache-2.0
+ -->
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      http-equiv="origin-trial"
+      content="AoXwZGsUZlGEyuueX5nR6tujynrCfWhNWQnZcHTy3AZkXtCMULt/UJs6+/1Bp5jVw7Ue96Tcyf1IO8IRUMimAgcAAABeeyJvcmlnaW4iOiJodHRwczovL2Nocm9tZS5kZXY6NDQzIiwiZmVhdHVyZSI6IkFJUHJvbXB0QVBJTXVsdGltb2RhbElucHV0IiwiZXhwaXJ5IjoxNzc0MzEwNDAwfQ=="
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Демо Prompt API</title>
+    <script>
+      if (!isSecureContext) location.protocol = "https:";
+    </script>
+    <script src="script.js" type="module"></script>
+  </head>
+  <body>
+    <h1>✨ Демо Prompt API</h1>
+    <p>
+      Демонстрация встроенного
+      <a href="https://developer.chrome.com/docs/ai/built-in">Prompt API</a>
+      в Chrome на базе Gemini Nano.
+    </p>
+    <div id="error-message"></div>
+    <div id="prompt-area">
+      <form>
+        <label>
+          Промпт
+          <textarea id="prompt-input"></textarea>
+        </label>
+        <button type="submit" id="submit-button">Отправить промпт</button>
+        <button type="button" id="reset-button">Сбросить сессию</button>
+        <span id="cost"></span>
+      </form>
+      <h2>Статистика сессии</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Использовано токенов</th>
+            <th>Осталось токенов</th>
+            <th>Всего токенов</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td id="tokens-so-far">&nbsp;</td>
+            <td id="tokens-left">&nbsp;</td>
+            <td id="max-tokens">&nbsp;</td>
+          </tr>
+        </tbody>
+      </table>
+      <h2>Метрики производительности</h2>
+      <table class="metrics-table">
+        <tbody>
+          <tr>
+            <th
+              scope="row"
+              title="Сколько оперативной памяти сейчас использует модель и какой приблизительный лимит доступен в браузере."
+            >
+              Использование памяти
+            </th>
+            <td id="memory-usage">&mdash;</td>
+          </tr>
+          <tr>
+            <th
+              scope="row"
+              title="Сколько времени заняла генерация последнего ответа от момента отправки запроса до получения полного текста."
+            >
+              Время последнего ответа
+            </th>
+            <td id="last-response-time">&mdash;</td>
+          </tr>
+          <tr>
+            <th
+              scope="row"
+              title="Скорость генерации модели, сколько токенов текста она создаёт в секунду (основной показатель производительности)."
+            >
+              Токенов в секунду
+            </th>
+            <td id="tokens-per-second">&mdash;</td>
+          </tr>
+          <tr>
+            <th
+              scope="row"
+              title="Текущая загруженная языковая модель, небольшая инструкционная модель примерно на 135 млн параметров."
+            >
+              Выбранная модель
+            </th>
+            <td id="selected-model">&mdash;</td>
+          </tr>
+          <tr>
+            <th
+              scope="row"
+              title="Сколько времени заняла загрузка и инициализация модели (скачивание весов, распаковка и подготовка к инференсу)."
+            >
+              Время загрузки модели
+            </th>
+            <td id="model-load-time">&mdash;</td>
+          </tr>
+          <tr>
+            <th
+              scope="row"
+              title="Максимальный объём памяти, который модель занимала с момента запуска."
+            >
+              Пиковое использование памяти
+            </th>
+            <td id="peak-memory-usage">&mdash;</td>
+          </tr>
+          <tr>
+            <th
+              scope="row"
+              title="Режим выполнения, где модель работает в отдельном потоке браузера (Web Worker), чтобы не блокировать основной UI-поток страницы."
+            >
+              Режим обработки
+            </th>
+            <td id="processing-mode">&mdash;</td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>История времени ответа</h3>
+      <p
+        class="metrics-note"
+        title="История времени ответа предыдущих запросов, используется для анализа производительности."
+      >
+        Длительность предыдущих запросов, сначала новые.
+      </p>
+      <ol id="response-time-history" class="response-time-history"></ol>
+      <h2>Диалог</h2>
+      <div id="response-area"></div>
+      <details>
+        <summary>Исходный ответ</summary>
+        <div></div>
+      </details>
+      <button id="copy-link-button">Копировать ссылку</button>
+      <small
+        >💡 Если ответ некорректен, выделите проблемный текст мышью перед
+        нажатием кнопки.</small
+      >
+      <div id="problematic-area">
+        <h2>Проблемный фрагмент:</h2>
+        <pre id="problem"></pre>
+      </div>
+    </div>
+    <footer>
+      Сделано
+      <a href="https://github.com/tomayac/">@tomayac</a>. Исходный код на
+      <a href="https://github.com/GoogleChromeLabs/web-ai-demos">GitHub</a>.
+    </footer>
+  </body>
+</html>
