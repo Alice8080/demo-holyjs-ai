@@ -4,7 +4,7 @@
 
 | Бэкенд | Модель | Среда | Размер |
 | --- | --- | --- | --- |
-| Prompt API | Gemini Nano | встроенная | ~1,7 ГБ |
+| Prompt API | Gemini Nano (v3Nano) | встроенная | ~4 ГБ |
 | Transformers.js | Gemma 3 1B (GQA) | WebGPU | ~790 МБ |
 | Transformers.js | Qwen3 0.6B | WASM | ~589 МБ |
 
@@ -30,7 +30,7 @@ npm start
 
 ### Prompt API — Gemini Nano
 
-Встроенная модель Chrome, без скачивания весов.
+Встроенная модель Chrome, без скачивания весов через демо. Фактический размер на диске зависит от версии Chrome и железа (вариант 2B/4B, CPU/GPU). Проверка: `chrome://on-device-internals` → Model Status → Folder size (например v3Nano ~4 075 MiB на CPU).
 
 ### Transformers.js — Gemma 3 1B
 

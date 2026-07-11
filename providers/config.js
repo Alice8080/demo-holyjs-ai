@@ -43,7 +43,7 @@ export const PROVIDERS = [
     runtime: "native",
     runtimeLabel: "Встроенный движок Chrome",
     modelName: "Gemini Nano",
-    sizeLabel: "~1,7 ГБ, встроена",
+    sizeLabel: "~4,1 ГБ, встроена",
     processingMode: "Основной поток (встроенная модель)",
     isAvailable: () =>
       "LanguageModel" in globalThis &&
