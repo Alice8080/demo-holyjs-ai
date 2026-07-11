@@ -1,15 +1,24 @@
 {
   "name": "prompt-api-playground",
   "version": "1.0.0",
-  "description": "This is a demo of Chrome's experimental Prompt API.",
+  "description": "Сравнение Prompt API и Transformers.js в браузере.",
+  "type": "module",
   "scripts": {
-    "start": "npx http-server",
+    "postinstall": "node scripts/copy-onnx-wasm.mjs",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "fix": "prettier --write ."
   },
   "author": "Thomas Steiner (tomac@google.com)",
   "license": "Apache-2.0",
+  "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
+    "onnxruntime-web": "1.26.0-dev.20260416-b7804b056c"
+  },
   "devDependencies": {
-    "http-server": "^14.1.1",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "vite": "^6.3.5",
+    "vite-plugin-node-polyfills": "^0.28.0"
   }
 }

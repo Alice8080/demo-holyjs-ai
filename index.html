@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark light" />
-    <meta
+    <meta 
       http-equiv="origin-trial"
       content="AoXwZGsUZlGEyuueX5nR6tujynrCfWhNWQnZcHTy3AZkXtCMULt/UJs6+/1Bp5jVw7Ue96Tcyf1IO8IRUMimAgcAAABeeyJvcmlnaW4iOiJodHRwczovL2Nocm9tZS5kZXY6NDQzIiwiZmVhdHVyZSI6IkFJUHJvbXB0QVBJTXVsdGltb2RhbElucHV0IiwiZXhwaXJ5IjoxNzc0MzEwNDAwfQ=="
     />
@@ -21,45 +21,94 @@
     <script>
       if (!isSecureContext) location.protocol = "https:";
     </script>
-    <script src="script.js" type="module"></script>
+    <script src="/script.js" type="module"></script>
   </head>
   <body>
-    <h1>✨ Демо Prompt API</h1>
-    <p>
-      Демонстрация встроенного
-      <a href="https://developer.chrome.com/docs/ai/built-in">Prompt API</a>
-      в Chrome на базе Gemini Nano.
-    </p>
-    <div id="error-message"></div>
-    <div id="prompt-area">
-      <form>
-        <label>
-          Промпт
-          <textarea id="prompt-input"></textarea>
-        </label>
-        <button type="submit" id="submit-button">Отправить промпт</button>
-        <button type="button" id="reset-button">Сбросить сессию</button>
-        <span id="cost"></span>
-      </form>
-      <h2>Статистика сессии</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Использовано токенов</th>
-            <th>Осталось токенов</th>
-            <th>Всего токенов</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td id="tokens-so-far">&nbsp;</td>
-            <td id="tokens-left">&nbsp;</td>
-            <td id="max-tokens">&nbsp;</td>
-          </tr>
-        </tbody>
-      </table>
-      <h2>Метрики производительности</h2>
-      <table class="metrics-table">
+    <div class="page">
+      <header class="hero">
+        <h1>Демо Prompt API</h1>
+        <p>
+          Сравнение встроенного
+          <a href="https://developer.chrome.com/docs/ai/built-in">Prompt API</a>
+          (Gemini Nano) с локальной моделью на
+          <a href="https://github.com/huggingface/transformers.js">Transformers.js</a>
+          в режимах <strong>WebGPU</strong> и <strong>WASM</strong>.
+        </p>
+      </header>
+
+      <div id="error-message"></div>
+
+      <div id="prompt-area">
+        <section class="provider-panel card">
+          <h2>Бэкенд и модель</h2>
+          <div class="provider-controls">
+            <label>
+              Выберите стек
+              <select id="provider-select"></select>
+            </label>
+            <button type="button" id="provider-apply-button">
+              Загрузить бэкенд
+            </button>
+          </div>
+          <p id="provider-description" class="provider-description"></p>
+          <div id="load-status" class="load-status" hidden>Загрузка модели…</div>
+          <progress id="load-progress" max="1" hidden></progress>
+        </section>
+
+        <section class="card prompt-form">
+          <h2>Промпт</h2>
+          <form>
+            <label>
+              Ваш запрос
+              <textarea
+                id="prompt-input"
+                placeholder="Напишите промпт для модели…"
+              ></textarea>
+            </label>
+            <div class="form-actions">
+              <button type="submit" id="submit-button">Отправить промпт</button>
+              <button type="button" id="reset-button">Сбросить сессию</button>
+              <span id="cost"></span>
+            </div>
+          </form>
+        </section>
+
+        <div class="metrics-grid">
+          <section class="card">
+            <h2>Статистика сессии</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Использовано</th>
+                  <th>Осталось</th>
+                  <th>Всего</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td id="tokens-so-far">&nbsp;</td>
+                  <td id="tokens-left">&nbsp;</td>
+                  <td id="max-tokens">&nbsp;</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="card">
+            <h2>История времени ответа</h2>
+            <p
+              class="metrics-note"
+              title="История времени ответа предыдущих запросов, используется для анализа производительности."
+            >
+              Длительность предыдущих запросов, сначала новые.
+            </p>
+            <ol id="response-time-history" class="response-time-history"></ol>
+          </section>
+        </div>
+
+        <section class="card">
+          <h2>Метрики производительности</h2>
+          <table class="metrics-table">
         <tbody>
           <tr>
             <th
@@ -91,11 +140,23 @@
           <tr>
             <th
               scope="row"
-              title="Текущая загруженная языковая модель, небольшая инструкционная модель примерно на 135 млн параметров."
+              title="Текущая загруженная языковая модель."
             >
               Выбранная модель
             </th>
             <td id="selected-model">&mdash;</td>
+          </tr>
+          <tr>
+            <th scope="row" title="Библиотека, через которую выполняется инференс.">
+              Библиотека
+            </th>
+            <td id="selected-backend">&mdash;</td>
+          </tr>
+          <tr>
+            <th scope="row" title="Аппаратный или программный backend: WebGPU, WASM или встроенный движок Chrome.">
+              Среда выполнения
+            </th>
+            <td id="selected-runtime">&mdash;</td>
           </tr>
           <tr>
             <th
@@ -125,35 +186,34 @@
             <td id="processing-mode">&mdash;</td>
           </tr>
         </tbody>
-      </table>
-      <h3>История времени ответа</h3>
-      <p
-        class="metrics-note"
-        title="История времени ответа предыдущих запросов, используется для анализа производительности."
-      >
-        Длительность предыдущих запросов, сначала новые.
-      </p>
-      <ol id="response-time-history" class="response-time-history"></ol>
-      <h2>Диалог</h2>
-      <div id="response-area"></div>
-      <details>
-        <summary>Исходный ответ</summary>
-        <div></div>
-      </details>
-      <button id="copy-link-button">Копировать ссылку</button>
-      <small
-        >💡 Если ответ некорректен, выделите проблемный текст мышью перед
-        нажатием кнопки.</small
-      >
-      <div id="problematic-area">
-        <h2>Проблемный фрагмент:</h2>
-        <pre id="problem"></pre>
+          </table>
+        </section>
+
+        <section class="card">
+          <h2>Диалог</h2>
+          <div id="response-area"></div>
+          <details>
+            <summary>Исходный ответ</summary>
+            <div></div>
+          </details>
+          <button id="copy-link-button">Копировать ссылку</button>
+          <small class="copy-hint"
+            >💡 Если ответ некорректен, выделите проблемный текст мышью перед
+            нажатием кнопки.</small
+          >
+        </section>
+
+        <div id="problematic-area" class="card">
+          <h2>Проблемный фрагмент</h2>
+          <pre id="problem"></pre>
+        </div>
       </div>
+
+      <footer>
+        Сделано
+        <a href="https://github.com/tomayac/">@tomayac</a>. Исходный код на
+        <a href="https://github.com/GoogleChromeLabs/web-ai-demos">GitHub</a>.
+      </footer>
     </div>
-    <footer>
-      Сделано
-      <a href="https://github.com/tomayac/">@tomayac</a>. Исходный код на
-      <a href="https://github.com/GoogleChromeLabs/web-ai-demos">GitHub</a>.
-    </footer>
   </body>
 </html>
