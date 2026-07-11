@@ -235,6 +235,10 @@ a:hover {
   color: var(--accent);
 }
 
+#prompt-input {
+  margin-top: 10px;
+}
+
 .load-status::before {
   content: "";
   width: 0.5rem;
