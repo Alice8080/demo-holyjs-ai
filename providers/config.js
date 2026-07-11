@@ -62,6 +62,7 @@ export const PROVIDERS = [
     dtype: "q4f16",
     processingMode: "Web Worker + WebGPU",
     docsUrl: "https://github.com/huggingface/transformers.js",
+    isAvailable: () => isWebGpuAvailable(),
   },
   {
     id: "transformers-wasm",
@@ -83,6 +84,44 @@ export const PROVIDERS = [
 ];
 
 export const DEFAULT_PROVIDER_ID = "prompt-api";
+export const WASM_FALLBACK_PROVIDER_ID = "transformers-wasm";
+
+/** @type {boolean | null} */
+let webGpuAvailable = null;
+
+export const probeWebGpuAvailability = async () => {
+  if (webGpuAvailable !== null) {
+    return webGpuAvailable;
+  }
+
+  if (typeof navigator === "undefined" || !("gpu" in navigator)) {
+    webGpuAvailable = false;
+    return false;
+  }
+
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    webGpuAvailable = !!adapter;
+  } catch {
+    webGpuAvailable = false;
+  }
+
+  return webGpuAvailable;
+};
+
+export const isWebGpuAvailable = () => {
+  if (webGpuAvailable !== null) {
+    return webGpuAvailable;
+  }
+
+  return typeof navigator !== "undefined" && "gpu" in navigator;
+};
+
+/** Без WebGPU загрузка transformers-webgpu перенаправляется на WASM. */
+export const resolveProviderId = (providerId) =>
+  providerId === "transformers-webgpu" && !isWebGpuAvailable()
+    ? WASM_FALLBACK_PROVIDER_ID
+    : providerId;
 
 export const getProvider = (id) =>
   PROVIDERS.find((provider) => provider.id === id) ?? PROVIDERS[0];
@@ -95,5 +134,5 @@ export const getAvailableProviders = () =>
 export const getDefaultProviderId = () => {
   const available = getAvailableProviders();
   const preferred = available.find((p) => p.id === DEFAULT_PROVIDER_ID);
-  return preferred?.id ?? available[0]?.id ?? PROVIDERS[0].id;
+  return resolveProviderId(preferred?.id ?? available[0]?.id ?? PROVIDERS[0].id);
 };

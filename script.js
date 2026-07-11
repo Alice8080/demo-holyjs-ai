@@ -12,6 +12,8 @@ import {
   getProvider,
   getProviderSelectLabel,
   getProviderSizeLabel,
+  probeWebGpuAvailability,
+  resolveProviderId,
 } from "./providers/index.js";
 
 const NUMBER_FORMAT_LANGUAGE = "ru-RU";
@@ -56,7 +58,7 @@ const SYSTEM_PROMPT = "Вы отзывчивый и дружелюбный по�
   };
 
   let session = null;
-  let activeProviderId = getDefaultProviderId();
+  let activeProviderId;
   let isLoadingProvider = false;
 
   const formatMegabytes = (bytes) =>
@@ -274,9 +276,11 @@ const SYSTEM_PROMPT = "Вы отзывчивый и дружелюбный по�
       return;
     }
 
+    const resolvedId = resolveProviderId(providerId);
+
     isLoadingProvider = true;
-    activeProviderId = providerId;
-    providerSelect.value = providerId;
+    activeProviderId = resolvedId;
+    providerSelect.value = resolvedId;
     providerApplyButton.disabled = true;
     submitButton.disabled = true;
     resetButton.disabled = true;
@@ -286,7 +290,7 @@ const SYSTEM_PROMPT = "Вы отзывчивый и дружелюбный по�
     resetResponseMetrics();
     updateProviderInfo();
 
-    const provider = getProvider(providerId);
+    const provider = getProvider(resolvedId);
     setLoadState({
       text: `Загрузка: ${provider.label}…`,
       progress: 0,
@@ -294,7 +298,7 @@ const SYSTEM_PROMPT = "Вы отзывчивый и дружелюбный по�
     });
 
     try {
-      session = await createProviderSession(providerId, {
+      session = await createProviderSession(resolvedId, {
         systemPrompt: SYSTEM_PROMPT,
         onProgress: (value) => {
           setLoadState({
@@ -392,6 +396,9 @@ const SYSTEM_PROMPT = "Вы отзывчивый и дружелюбный по�
       updateStats();
     }
   };
+
+  await probeWebGpuAvailability();
+  activeProviderId = getDefaultProviderId();
 
   if (!populateProviderSelect()) {
     return;
@@ -491,8 +498,8 @@ const SYSTEM_PROMPT = "Вы отзывчивый и дружелюбный по�
   const highlight = params.get("highlight");
 
   if (urlProvider && getProvider(urlProvider)) {
-    activeProviderId = urlProvider;
-    providerSelect.value = urlProvider;
+    activeProviderId = resolveProviderId(urlProvider);
+    providerSelect.value = activeProviderId;
     updateProviderInfo();
   }
 

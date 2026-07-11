@@ -1,4 +1,4 @@
-import { getProvider } from "./config.js";
+import { getProvider, resolveProviderId } from "./config.js";
 
 const TRANSFORMERS_PROVIDER_IDS = new Set([
   "transformers-webgpu",
@@ -9,9 +9,10 @@ export const isTransformersProvider = (providerId) =>
   TRANSFORMERS_PROVIDER_IDS.has(providerId);
 
 export async function createProviderSession(providerId, options) {
-  const provider = getProvider(providerId);
+  const resolvedId = resolveProviderId(providerId);
+  const provider = getProvider(resolvedId);
 
-  switch (provider.id) {
+  switch (resolvedId) {
     case "prompt-api":
       return (await import("./prompt-api.js")).createPromptApiSession(
         provider,
@@ -38,4 +39,6 @@ export {
   getDefaultProviderId,
   getProviderSelectLabel,
   getProviderSizeLabel,
+  probeWebGpuAvailability,
+  resolveProviderId,
 } from "./config.js";
